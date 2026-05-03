@@ -13,7 +13,6 @@ from config import RAW, TARGET_BOOKS, MIN_RATINGS, SUBJECT_MAP
 
 CANDIDATES = RAW / "ol_candidates.ndjson"
 NYT_DATA   = RAW / "nyt_bestsellers.json"
-HC_DATA    = RAW / "hardcover_ratings.json"
 OUTPUT     = RAW / "books_clean.json"
 
 def normalize_str(s: str) -> str:
@@ -37,29 +36,24 @@ def extract_genres(subjects: list) -> tuple[list, list]:
                 tags.append(s)
     return genres[:5], tags[:10]
 
-def unified_popularity(book: dict, nyt_map: dict, hc_map: dict) -> float:
-    isbn = book.get("isbn") or ""
-    nyt = nyt_map.get(isbn, {})
-    hc  = hc_map.get(isbn, {})
-
-    ol_reads    = book.get("ol_reads_count", 0) or 0
-    nyt_weeks   = nyt.get("weeks_on_list", 0) or 0
-    hc_reads    = hc.get("reads_count", 0) or 0
-
+def unified_popularity(book: dict, nyt_map: dict) -> float:
+    isbn      = book.get("isbn") or ""
+    nyt       = nyt_map.get(isbn, {})
+    ol_reads  = book.get("ol_reads_count", 0) or 0
+    ol_ratings = book.get("ol_ratings_count", 0) or 0
+    nyt_weeks = nyt.get("weeks_on_list", 0) or 0
     score = (
-        0.4 * math.log10(ol_reads + 1)
-        + 0.3 * math.log10(nyt_weeks * 100 + 1)   # scale up NYT (small numbers)
-        + 0.3 * math.log10(hc_reads + 1)
+        math.log10(ol_reads + 1)
+        + math.log10(ol_ratings + 1) * 0.3
+        + math.log10(nyt_weeks * 100 + 1) * 0.5
     )
     return round(score, 4)
 
 def main():
     print("=== 04_clean: Merge + dedup + rank ===")
 
-    # Load signals
     nyt_map = json.loads(NYT_DATA.read_text()) if NYT_DATA.exists() else {}
-    hc_map  = json.loads(HC_DATA.read_text()) if HC_DATA.exists() else {}
-    print(f"  NYT entries: {len(nyt_map):,}  Hardcover entries: {len(hc_map):,}")
+    print(f"  NYT entries: {len(nyt_map):,}")
 
     # Stream candidates
     candidates = []
@@ -90,17 +84,11 @@ def main():
         genres, tags = extract_genres(c.get("subjects", []))
         c["genres"] = genres
         c["tags"]   = tags
-        c["unified_popularity"] = unified_popularity(c, nyt_map, hc_map)
+        c["unified_popularity"] = unified_popularity(c, nyt_map)
 
-        # Merge NYT data
         isbn = c.get("isbn") or ""
         nyt = nyt_map.get(isbn, {})
         c["nyt_weeks_on_list"] = nyt.get("weeks_on_list", 0)
-
-        # Merge Hardcover data
-        hc = hc_map.get(isbn, {})
-        c["hardcover_avg_rating"]    = hc.get("avg_rating")
-        c["hardcover_ratings_count"] = hc.get("ratings_count", 0)
 
         # author_id from author_keys or normalized author name
         if c.get("author"):
