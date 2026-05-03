@@ -32,19 +32,40 @@ def load_existing_ids():
     return {b["id"] for b in books}
 
 # ── Download helpers ───────────────────────────────────────────────────────────
-def download_gz_stream(url: str, dest: Path):
-    print(f"  Downloading {url.split('/')[-1]} → {dest.name}")
-    req = urllib.request.Request(url, headers={"User-Agent": "BookNook/1.0 (book-recommendation-tool)"})
-    with urllib.request.urlopen(req, timeout=300) as resp, open(dest, "wb") as f:
-        total = int(resp.headers.get("Content-Length", 0))
-        downloaded = 0
-        while True:
-            chunk = resp.read(1024 * 1024)
-            if not chunk:
-                break
-            f.write(chunk)
-            downloaded += len(chunk)
-    print(f"  Downloaded {downloaded / 1e6:.1f} MB")
+def download_gz_stream(url: str, dest: Path, max_retries: int = 3):
+    """Download a gzip file with retry logic and magic-byte validation."""
+    filename = url.split("/")[-1]
+    for attempt in range(1, max_retries + 1):
+        if attempt > 1:
+            wait = 60 * attempt
+            print(f"  Retrying in {wait}s (attempt {attempt}/{max_retries})…")
+            time.sleep(wait)
+        print(f"  Downloading {filename} → {dest.name}")
+        try:
+            req = urllib.request.Request(url, headers={
+                "User-Agent": "BookNook/1.0 (book-recommendation-tool)",
+                "Accept-Encoding": "identity",  # prevent any proxy gzip re-encoding
+            })
+            with urllib.request.urlopen(req, timeout=600) as resp, open(dest, "wb") as f:
+                downloaded = 0
+                while True:
+                    chunk = resp.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    f.write(chunk)
+                    downloaded += len(chunk)
+            size_mb = downloaded / 1e6
+            print(f"  Downloaded {size_mb:.1f} MB")
+            # Validate gzip magic bytes — OL sometimes returns HTML error pages
+            with open(dest, "rb") as f:
+                magic = f.read(2)
+            if magic != b'\x1f\x8b':
+                raise ValueError(f"Not a gzip file — server returned non-gzip content ({magic!r})")
+            return
+        except Exception as e:
+            print(f"  Attempt {attempt} failed: {e}")
+            dest.unlink(missing_ok=True)
+    raise SystemExit(f"ERROR: Failed to download {filename} after {max_retries} attempts")
 
 # ── Aggregate reading-log counts by work key ──────────────────────────────────
 def build_reading_counts(reading_log_gz: Path) -> dict:
