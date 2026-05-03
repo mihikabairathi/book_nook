@@ -27,6 +27,7 @@ jobs:
           ANTHROPIC_API_KEY:    ${{ secrets.ANTHROPIC_API_KEY }}
           NYT_BOOKS_API_KEY:    ${{ secrets.NYT_BOOKS_API_KEY }}
           GOOGLE_BOOKS_API_KEY: ${{ secrets.GOOGLE_BOOKS_API_KEY }}
+          PYTHONUNBUFFERED:     "1"
         run: |
           cd pipeline
           python 01_fetch_ol.py
