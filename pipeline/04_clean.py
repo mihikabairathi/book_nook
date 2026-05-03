@@ -9,37 +9,12 @@ import re
 from pathlib import Path
 from tqdm import tqdm
 
-from config import RAW, TARGET_BOOKS, MIN_RATINGS
+from config import RAW, TARGET_BOOKS, MIN_RATINGS, SUBJECT_MAP
 
 CANDIDATES = RAW / "ol_candidates.ndjson"
 NYT_DATA   = RAW / "nyt_bestsellers.json"
 HC_DATA    = RAW / "hardcover_ratings.json"
 OUTPUT     = RAW / "books_clean.json"
-
-# Canonical genre mapping from OL subject strings
-SUBJECT_MAP = {
-    "fiction": None,  # too generic — skip
-    "mystery": "Mystery",     "detective": "Mystery",     "crime": "Mystery",
-    "thriller": "Thriller",   "suspense": "Thriller",
-    "romance": "Romance",     "love stories": "Romance",
-    "fantasy": "Fantasy",     "magic": "Fantasy",
-    "science fiction": "Science Fiction", "sci-fi": "Science Fiction",
-    "horror": "Horror",
-    "historical fiction": "Historical Fiction", "history": "Historical Fiction",
-    "biography": "Biography",  "autobiography": "Biography", "memoir": "Biography",
-    "nonfiction": "Non-Fiction", "non-fiction": "Non-Fiction",
-    "literary fiction": "Literary Fiction", "literature": "Literary Fiction",
-    "young adult": "Young Adult", "ya": "Young Adult",
-    "children": "Children's",
-    "self-help": "Self-Help", "self help": "Self-Help",
-    "psychology": "Psychology",
-    "philosophy": "Philosophy",
-    "graphic novel": "Graphic Novel", "comics": "Graphic Novel",
-    "poetry": "Poetry",
-    "travel": "Travel",
-    "nature": "Nature",
-    "adventure": "Adventure",
-}
 
 def normalize_str(s: str) -> str:
     return re.sub(r"[^a-z0-9 ]", "", s.lower()).strip()

@@ -30,8 +30,33 @@ N_CLUSTERS          = 20
 LABEL_MODEL         = "claude-haiku-4-5-20251001"
 LABEL_FALLBACK      = "claude-sonnet-4-6"
 
-# ── Open Library dump URL ──────────────────────────────────────────────────────
+# ── Open Library dump URLs ─────────────────────────────────────────────────────
 OL_WORKS_DUMP_URL   = "https://openlibrary.org/data/ol_dump_works_latest.txt.gz"
 OL_AUTHORS_DUMP_URL = "https://openlibrary.org/data/ol_dump_authors_latest.txt.gz"
 OL_RATINGS_DUMP_URL = "https://openlibrary.org/data/ol_dump_ratings_latest.txt.gz"
 OL_READING_LOG_URL  = "https://openlibrary.org/data/ol_dump_reading-log_latest.txt.gz"
+
+# ── Shared genre mapping (used by 04_clean.py and 05_enrich.py) ────────────────
+SUBJECT_MAP = {
+    "fiction": None,  # too generic
+    "mystery": "Mystery",      "detective": "Mystery",       "crime": "Mystery",
+    "thriller": "Thriller",    "suspense": "Thriller",
+    "romance": "Romance",      "love stories": "Romance",
+    "fantasy": "Fantasy",      "magic": "Fantasy",
+    "science fiction": "Science Fiction", "sci-fi": "Science Fiction",
+    "horror": "Horror",
+    "historical fiction": "Historical Fiction", "history": "Historical Fiction",
+    "biography": "Biography",  "autobiography": "Biography", "memoir": "Biography",
+    "nonfiction": "Non-Fiction", "non-fiction": "Non-Fiction",
+    "literary fiction": "Literary Fiction", "literature": "Literary Fiction",
+    "young adult": "Young Adult", "ya": "Young Adult",
+    "children": "Children's",
+    "self-help": "Self-Help",  "self help": "Self-Help",
+    "psychology": "Psychology",
+    "philosophy": "Philosophy",
+    "graphic novel": "Graphic Novel", "comics": "Graphic Novel",
+    "poetry": "Poetry",
+    "travel": "Travel",
+    "nature": "Nature",
+    "adventure": "Adventure",
+}

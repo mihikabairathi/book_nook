@@ -22,6 +22,21 @@ jobs:
       - name: Install dependencies
         run: pip install -r pipeline/requirements.txt
 
+      - name: Get cache key (current month)
+        id: date
+        run: echo "month=$(date +'%Y-%m')" >> $GITHUB_OUTPUT
+
+      - name: Cache OL dump files
+        uses: actions/cache@v4
+        with:
+          path: |
+            pipeline/raw/ol_works_latest.txt.gz
+            pipeline/raw/ol_authors_latest.txt.gz
+            pipeline/raw/ol_ratings_latest.txt.gz
+            pipeline/raw/ol_reading_log_latest.txt.gz
+          key: ol-dumps-${{ steps.date.outputs.month }}
+          save-always: true   # save even if a later pipeline step fails
+
       - name: Run pipeline
         env:
           ANTHROPIC_API_KEY:    ${{ secrets.ANTHROPIC_API_KEY }}
