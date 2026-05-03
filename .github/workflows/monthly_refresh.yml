@@ -26,16 +26,12 @@ jobs:
         id: date
         run: echo "month=$(date +'%Y-%m')" >> $GITHUB_OUTPUT
 
-      - name: Restore OL dump cache
+      - name: Restore OL candidates cache
         id: cache-restore
         uses: actions/cache/restore@v4
         with:
-          path: |
-            pipeline/raw/ol_works_latest.txt.gz
-            pipeline/raw/ol_authors_latest.txt.gz
-            pipeline/raw/ol_ratings_latest.txt.gz
-            pipeline/raw/ol_reading_log_latest.txt.gz
-          key: ol-dumps-${{ steps.date.outputs.month }}
+          path: pipeline/raw/ol_candidates.ndjson
+          key: ol-candidates-${{ steps.date.outputs.month }}
 
       - name: Probe NYT API reachability
         env:
@@ -66,16 +62,12 @@ jobs:
           python 10_timeline.py
           python 11_serialize.py
 
-      - name: Save OL dump cache
+      - name: Save OL candidates cache
         if: always()
         uses: actions/cache/save@v4
         with:
-          path: |
-            pipeline/raw/ol_works_latest.txt.gz
-            pipeline/raw/ol_authors_latest.txt.gz
-            pipeline/raw/ol_ratings_latest.txt.gz
-            pipeline/raw/ol_reading_log_latest.txt.gz
-          key: ol-dumps-${{ steps.date.outputs.month }}
+          path: pipeline/raw/ol_candidates.ndjson
+          key: ol-candidates-${{ steps.date.outputs.month }}
 
       - name: Commit updated data files
         run: |
