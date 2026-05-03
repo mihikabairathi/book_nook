@@ -47,15 +47,15 @@ def label_batch(client: anthropic.Anthropic, books_to_label: list) -> dict:
     """Submit a message batch and poll until complete. Returns {custom_id: labels}."""
 
     requests = [
-        anthropic.types.message_create_params.Request(
-            custom_id=book["id"],
-            params={
+        {
+            "custom_id": book["id"],
+            "params": {
                 "model":      LABEL_MODEL,
                 "max_tokens": 512,
                 "system":     SYSTEM_PROMPT,
                 "messages":   [{"role": "user", "content": build_user_prompt(book)}],
             },
-        )
+        }
         for book in books_to_label
     ]
 
