@@ -80,13 +80,24 @@ def label_batch(client: anthropic.Anthropic, books_to_label: list) -> dict:
         if result.result.type == "succeeded":
             content = result.result.message.content[0].text.strip()
             try:
-                results[cid] = json.loads(content)
-            except json.JSONDecodeError:
+                results[cid] = parse_label_response(content)
+            except (json.JSONDecodeError, ValueError):
                 print(f"  WARN: JSON parse failed for {cid}")
         else:
             print(f"  WARN: Request {cid} failed: {result.result.type}")
 
     return results
+
+def parse_label_response(text: str) -> dict:
+    """Parse Claude's response, tolerating markdown code fences and surrounding text."""
+    text = text.strip()
+    if text.startswith("```"):
+        lines = text.splitlines()
+        text = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+    start, end = text.find("{"), text.rfind("}") + 1
+    if start != -1 and end > start:
+        text = text[start:end]
+    return json.loads(text)
 
 def label_single_fallback(client: anthropic.Anthropic, book: dict) -> dict | None:
     """Fallback: label one book with Sonnet when Haiku batch failed."""
@@ -97,7 +108,7 @@ def label_single_fallback(client: anthropic.Anthropic, book: dict) -> dict | Non
             system=SYSTEM_PROMPT,
             messages=[{"role": "user", "content": build_user_prompt(book)}],
         )
-        return json.loads(resp.content[0].text.strip())
+        return parse_label_response(resp.content[0].text)
     except Exception as e:
         print(f"  Fallback failed for {book['id']}: {e}")
         return None

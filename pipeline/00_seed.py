@@ -145,10 +145,10 @@ def main():
             f.write(json.dumps(c) + "\n")
     print(f"  Wrote → {OUTPUT}")
 
-    print("\n  Running downstream pipeline (04_clean → 11_serialize)…")
-    print("  (Skipping 01-03 since we already have candidates)\n")
+    print("\n  Running downstream pipeline…")
+    print("  (Skipping 01 — seed already produced candidates; 02 runs normally for NYT data)\n")
 
-    steps = ["04_clean.py", "05_enrich.py", "06_label.py", "07_embed.py",
+    steps = ["02_fetch_nyt.py", "04_clean.py", "05_enrich.py", "06_label.py", "07_embed.py",
              "08_umap.py", "09_author_graph.py", "10_timeline.py", "11_serialize.py"]
 
     import os
