@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BookNook — Find your next favourite book</title>
+  <meta name="description" content="AI-powered book discovery. Search by mood, pacing, and vibe. Explore 10,000+ books with semantic recommendations.">
+  <meta property="og:title" content="BookNook">
+  <meta property="og:description" content="Discover books by mood, pacing, and vibe. Powered by AI.">
+  <meta property="og:type" content="website">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/book-card.css">
+</head>
+<body>
+  <nav class="site-nav">
+    <div class="site-nav__inner">
+      <a href="#/" class="site-logo">BookNook <span>/ discover</span></a>
+      <ul class="nav-links">
+        <li><a href="#/" class="active">Discover</a></li>
+        <li><a href="#/explore">Explore Map</a></li>
+        <li><a href="#/authors">Author Network</a></li>
+        <li><a href="#/timeline">Timeline</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="page" id="app">
+
+    <!-- Hero search -->
+    <header class="page-header" style="max-width: 680px; margin-bottom: 32px;">
+      <h1 class="page-title" style="font-size: 2.4rem; margin-bottom: 12px;">
+        Find your next favourite book.
+      </h1>
+      <p class="page-subtitle" style="margin-bottom: 20px;">
+        Describe what you're in the mood for, or use the sliders to dial in the vibe.
+      </p>
+      <div class="search-bar" id="nl-search-wrap">
+        <svg class="search-bar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input
+          type="text"
+          id="nl-input"
+          placeholder="e.g. a melancholy slow-burn set in Japan with beautiful prose…"
+          autocomplete="off"
+          spellcheck="false"
+        >
+        <span class="search-bar__status" id="nl-status"></span>
+      </div>
+    </header>
+
+    <!-- Main layout: filters + results -->
+    <div style="display: grid; grid-template-columns: 260px 1fr; gap: 28px; align-items: start;">
+
+      <!-- ── Filters sidebar ── -->
+      <aside id="filters-sidebar">
+        <div class="filters-panel">
+
+          <div class="filter-group">
+            <div class="filter-label">Genre <span id="genre-clear" style="cursor:pointer;display:none;">clear</span></div>
+            <div class="tag-group" id="genre-tags">
+              <!-- populated by JS -->
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <div class="filter-label">Mood — Dark <span id="mood-dark-val">any</span></div>
+            <div class="slider-wrap">
+              <input type="range" id="slider-mood-dark" min="0" max="10" step="1" value="5" list="mood-markers">
+              <datalist id="mood-markers">
+                <option value="0"><option value="5"><option value="10">
+              </datalist>
+              <div class="slider-labels"><span>cozy/light</span><span>any</span><span>dark/heavy</span></div>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <div class="filter-label">Pacing <span id="pacing-val">any</span></div>
+            <div class="slider-wrap">
+              <input type="range" id="slider-pacing" min="0" max="10" step="1" value="5">
+              <div class="slider-labels"><span>slow burn</span><span>any</span><span>fast-paced</span></div>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <div class="filter-label">Focus <span id="focus-val">any</span></div>
+            <div class="slider-wrap">
+              <input type="range" id="slider-focus" min="0" max="10" step="1" value="5">
+              <div class="slider-labels"><span>character-driven</span><span>any</span><span>plot-driven</span></div>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <div class="filter-label">Depth <span id="depth-val">any</span></div>
+            <div class="slider-wrap">
+              <input type="range" id="slider-depth" min="0" max="10" step="1" value="5">
+              <div class="slider-labels"><span>light read</span><span>any</span><span>dense/literary</span></div>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <div class="filter-label">Published</div>
+            <div class="slider-wrap" style="display:flex; gap: 8px; align-items: center;">
+              <input type="number" id="year-min" min="1800" max="2030" value="1800"
+                style="width:72px; padding:4px 8px; border:1.5px solid var(--border); border-radius:var(--radius-sm); font-size:0.8rem; background:var(--bg-base); color:var(--text);">
+              <span style="color:var(--text-faint);">–</span>
+              <input type="number" id="year-max" min="1800" max="2030" value="2025"
+                style="width:72px; padding:4px 8px; border:1.5px solid var(--border); border-radius:var(--radius-sm); font-size:0.8rem; background:var(--bg-base); color:var(--text);">
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.875rem; color:var(--text-muted);">
+              <input type="checkbox" id="hidden-gems-only" style="accent-color:var(--accent);">
+              Hidden gems only
+            </label>
+          </div>
+
+          <button class="btn btn-outline" id="reset-filters" style="width:100%; justify-content:center; margin-top:4px;">
+            Reset all filters
+          </button>
+
+        </div>
+      </aside>
+
+      <!-- ── Results ── -->
+      <section>
+        <!-- Sort / view controls -->
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+          <div class="section-title" id="results-heading" style="flex:1; margin-bottom:0;">
+            Popular books
+            <span class="section-count" id="result-count"></span>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <label style="font-size:0.8rem; color:var(--text-faint);">Sort</label>
+            <select id="sort-select"
+              style="padding:4px 8px; border:1.5px solid var(--border); border-radius:var(--radius-sm); background:var(--bg-card); font-size:0.8rem; color:var(--text); cursor:pointer;">
+              <option value="popularity">Popularity</option>
+              <option value="rating">Rating</option>
+              <option value="year_desc">Newest first</option>
+              <option value="year_asc">Oldest first</option>
+              <option value="hidden_gems">Hidden gems</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Loading skeleton -->
+        <div id="loading-state" class="books-grid" style="display:none;">
+          <div class="skeleton" style="aspect-ratio: 2/3; border-radius: var(--radius-lg);"></div>
+          <div class="skeleton" style="aspect-ratio: 2/3; border-radius: var(--radius-lg);"></div>
+          <div class="skeleton" style="aspect-ratio: 2/3; border-radius: var(--radius-lg);"></div>
+          <div class="skeleton" style="aspect-ratio: 2/3; border-radius: var(--radius-lg);"></div>
+          <div class="skeleton" style="aspect-ratio: 2/3; border-radius: var(--radius-lg);"></div>
+          <div class="skeleton" style="aspect-ratio: 2/3; border-radius: var(--radius-lg);"></div>
+        </div>
+
+        <!-- Empty state -->
+        <div id="empty-state" class="empty-state" style="display:none;">
+          <h3>No books found</h3>
+          <p>Try adjusting your filters or search query.</p>
+        </div>
+
+        <!-- Book grid -->
+        <div class="books-grid" id="book-grid"></div>
+
+        <!-- Load more -->
+        <div style="text-align:center; margin-top:32px;">
+          <button class="btn btn-outline" id="load-more" style="display:none;">
+            Load more books
+          </button>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <script type="module" src="js/book-card.js"></script>
+  <script type="module">
+    import { initHome } from './js/pages/home.js';
+    initHome();
+  </script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Explore Map — BookNook</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/book-card.css">
+  <link rel="stylesheet" href="css/viz.css">
+  <!-- D3 for bubble chart -->
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <!-- regl-scatterplot for UMAP -->
+  <script src="https://unpkg.com/regl-scatterplot@1/dist/regl-scatterplot.js"></script>
+</head>
+<body>
+  <nav class="site-nav">
+    <div class="site-nav__inner">
+      <a href="index.html" class="site-logo">BookNook</a>
+      <ul class="nav-links">
+        <li><a href="index.html">Discover</a></li>
+        <li><a href="explore.html" class="active">Explore Map</a></li>
+        <li><a href="authors.html">Author Network</a></li>
+        <li><a href="timeline.html">Timeline</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div style="padding: 24px 24px 0; max-width: var(--max-width); margin: 0 auto;">
+    <h1 class="page-title" style="margin-bottom: 4px;">Explore the book space</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px;">
+      Each dot is a book. Similar books cluster together. Hover to preview, click to open.
+    </p>
+  </div>
+
+  <!-- Genre filter strip -->
+  <div class="scatter-genre-filters" id="genre-filter-strip" style="max-width: var(--max-width); margin: 0 auto; padding: 8px 24px 12px;">
+    <!-- populated by JS -->
+  </div>
+
+  <!-- Scatter + sidebar layout -->
+  <div style="max-width: var(--max-width); margin: 0 auto; padding: 0 24px 24px; display: grid; grid-template-columns: 1fr 300px; gap: 20px; min-height: calc(100vh - 180px);">
+
+    <!-- Scatter -->
+    <div class="viz-container" style="position: relative; overflow: hidden; min-height: 500px;">
+      <canvas id="scatter-canvas" style="width:100%; height:100%; display:block;"></canvas>
+      <div id="cluster-labels" style="position:absolute; inset:0; pointer-events:none;"></div>
+      <div id="scatter-loading" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:var(--bg-card);">
+        <div style="text-align:center; color: var(--text-muted);">
+          <div class="skeleton" style="width:120px; height:12px; margin: 0 auto 8px;"></div>
+          <div style="font-size:0.8rem;">Loading book space…</div>
+        </div>
+      </div>
+      <div class="scatter-tooltip" id="scatter-tooltip">
+        <img id="tt-cover" src="" alt="">
+        <div class="scatter-tooltip__title" id="tt-title"></div>
+        <div class="scatter-tooltip__author" id="tt-author"></div>
+      </div>
+    </div>
+
+    <!-- Sidebar: bubble chart -->
+    <div class="explore-sidebar">
+      <div class="viz-container">
+        <div class="viz-header">
+          <span class="viz-title">Genres by mood</span>
+        </div>
+        <div style="padding: 8px;">
+          <svg id="bubble-svg" style="width:100%;"></svg>
+        </div>
+        <div style="padding: 8px 12px; font-size: 0.7rem; color: var(--text-faint);">
+          Size = book count · Color = avg darkness (red = dark, cream = cozy)
+        </div>
+      </div>
+
+      <!-- Selected book mini-card -->
+      <div id="selected-book-card" style="display:none;">
+        <div class="viz-container">
+          <div class="viz-header">
+            <span class="viz-title">Selected book</span>
+            <button id="open-book-btn" class="btn btn-outline" style="font-size:0.75rem; padding:4px 10px;">Open →</button>
+          </div>
+          <div style="padding: 12px 16px;" id="selected-book-inner"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    import { initExplore } from './js/pages/explore.js';
+    initExplore();
+  </script>
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Author — BookNook</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/book-card.css">
+  <link rel="stylesheet" href="css/viz.css">
+</head>
+<body>
+  <nav class="site-nav">
+    <div class="site-nav__inner">
+      <a href="index.html" class="site-logo">BookNook</a>
+      <ul class="nav-links">
+        <li><a href="index.html">Discover</a></li>
+        <li><a href="explore.html">Explore Map</a></li>
+        <li><a href="authors.html">Author Network</a></li>
+        <li><a href="timeline.html">Timeline</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="page" id="app">
+
+    <div id="loading-state">
+      <div class="skeleton" style="height: 2rem; width: 220px; margin-bottom: 8px;"></div>
+      <div class="skeleton" style="height: 1rem; width: 140px;"></div>
+    </div>
+
+    <div id="author-detail" style="display:none;">
+
+      <a href="index.html" class="btn btn-outline" style="display:inline-flex; margin-bottom: 24px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Back
+      </a>
+
+      <!-- Author header -->
+      <div style="margin-bottom: 40px;">
+        <div style="display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap;">
+          <h1 id="author-name" class="page-title"></h1>
+          <span id="author-stats" style="color: var(--text-faint); font-size: 0.9rem;"></span>
+        </div>
+        <div id="author-genres" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px;"></div>
+      </div>
+
+      <!-- Author's books -->
+      <section style="margin-bottom: 48px;">
+        <h2 class="section-title">Books <span class="section-count" id="book-count-label"></span></h2>
+        <div class="books-grid" id="author-books"></div>
+      </section>
+
+      <!-- Similar authors -->
+      <section>
+        <h2 class="section-title">Similar authors</h2>
+        <div id="similar-authors" style="display: flex; flex-direction: column; gap: 12px;"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <script type="module" src="js/book-card.js"></script>
+  <script type="module">
+    import { initAuthorDetail } from './js/pages/author-detail.js';
+    initAuthorDetail();
+  </script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book — BookNook</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/book-card.css">
+  <link rel="stylesheet" href="css/viz.css">
+  <!-- Chart.js for radar -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <nav class="site-nav">
+    <div class="site-nav__inner">
+      <a href="#/" class="site-logo">BookNook</a>
+      <ul class="nav-links">
+        <li><a href="index.html">Discover</a></li>
+        <li><a href="explore.html">Explore Map</a></li>
+        <li><a href="authors.html">Author Network</a></li>
+        <li><a href="timeline.html">Timeline</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="page" id="app">
+
+    <!-- Loading state -->
+    <div id="loading-state">
+      <div class="skeleton" style="height: 2rem; width: 300px; margin-bottom: 8px;"></div>
+      <div class="skeleton" style="height: 1rem; width: 180px;"></div>
+    </div>
+
+    <!-- Book detail (hidden until loaded) -->
+    <div id="book-detail" style="display:none;">
+
+      <!-- Back nav -->
+      <a href="index.html" class="btn btn-outline" style="display:inline-flex; margin-bottom: 24px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Back to discover
+      </a>
+
+      <!-- Hero row: cover + info + radar -->
+      <div style="display: grid; grid-template-columns: 200px 1fr 320px; gap: 40px; margin-bottom: 48px; align-items: start;">
+
+        <!-- Cover -->
+        <div>
+          <div class="book-card__cover" style="border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-md); aspect-ratio: 2/3;">
+            <img id="book-cover" src="" alt="" loading="lazy">
+          </div>
+          <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 8px;">
+            <button class="btn btn-primary" id="find-similar-btn" style="width:100%; justify-content:center;">
+              Find similar books
+            </button>
+            <a id="ol-link" href="#" target="_blank" rel="noopener" class="btn btn-outline" style="width:100%; justify-content:center;">
+              Open Library ↗
+            </a>
+          </div>
+        </div>
+
+        <!-- Info -->
+        <div>
+          <h1 id="book-title" class="page-title" style="margin-bottom: 6px;"></h1>
+          <p id="book-author" style="font-size: 1.1rem; color: var(--text-muted); margin-bottom: 12px;">
+            by <a id="book-author-link" href="#" style="color: var(--accent); text-decoration: none;"></a>
+          </p>
+
+          <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px; flex-wrap: wrap;">
+            <span id="book-rating" style="font-family: var(--font-mono); font-size: 1rem; color: var(--accent); font-weight: bold;"></span>
+            <span id="book-year" style="color: var(--text-faint); font-size: 0.875rem;"></span>
+            <span id="book-pages" style="color: var(--text-faint); font-size: 0.875rem;"></span>
+          </div>
+
+          <div id="book-genres" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;"></div>
+
+          <p id="book-description" style="font-family: var(--font-body); line-height: 1.8; color: var(--text); font-size: 1rem;"></p>
+
+          <div style="margin-top: 20px;">
+            <div style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 10px;">Themes</div>
+            <div id="book-themes" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+          </div>
+
+          <div style="margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div style="font-size: 0.8rem;">
+              <span style="color: var(--text-faint);">Setting</span><br>
+              <span id="book-setting" style="color: var(--text);"></span>
+            </div>
+            <div style="font-size: 0.8rem;">
+              <span style="color: var(--text-faint);">Prose style</span><br>
+              <span id="book-prose" style="color: var(--text); text-transform: capitalize;"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Radar chart -->
+        <div>
+          <div class="viz-container">
+            <div class="viz-header">
+              <span class="viz-title">Literary dimensions</span>
+              <button class="btn btn-outline" id="compare-toggle" style="font-size:0.75rem; padding: 4px 10px;">Compare…</button>
+            </div>
+            <div style="padding: 16px;">
+              <div class="radar-wrap">
+                <canvas id="radar-canvas" width="320" height="300"></canvas>
+              </div>
+              <div class="radar-legend" id="radar-legend"></div>
+            </div>
+            <!-- Compare input (hidden by default) -->
+            <div id="compare-input-wrap" style="display:none; padding: 12px 16px; border-top: 1px solid var(--border);">
+              <div class="search-bar">
+                <svg class="search-bar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <input type="text" id="compare-input" placeholder="Search for a book to compare…" autocomplete="off">
+              </div>
+              <div id="compare-results" style="margin-top: 8px;"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Similar books -->
+      <section>
+        <h2 class="section-title">Similar books</h2>
+        <div class="books-grid" id="similar-grid"></div>
+      </section>
+
+      <!-- Author's other books -->
+      <section style="margin-top: 40px;">
+        <h2 class="section-title">More by <span id="more-by-author"></span></h2>
+        <div class="books-grid" id="author-books-grid"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <script type="module" src="js/book-card.js"></script>
+  <script type="module">
+    import { initBookDetail } from './js/pages/book-detail.js';
+    initBookDetail();
+  </script>
+</body>
+</html>

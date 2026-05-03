@@ -1,0 +1,6 @@
+{
+  "pipeline_run": null,
+  "book_count": 0,
+  "schema_version": "1.0",
+  "note": "Run pipeline/00_seed.py to populate this dataset."
+}

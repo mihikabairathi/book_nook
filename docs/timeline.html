@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timeline — BookNook</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/viz.css">
+  <!-- D3 for timeline -->
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+</head>
+<body>
+  <nav class="site-nav">
+    <div class="site-nav__inner">
+      <a href="index.html" class="site-logo">BookNook</a>
+      <ul class="nav-links">
+        <li><a href="index.html">Discover</a></li>
+        <li><a href="explore.html">Explore Map</a></li>
+        <li><a href="authors.html">Author Network</a></li>
+        <li><a href="timeline.html" class="active">Timeline</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div style="padding: 24px 24px 0; max-width: var(--max-width); margin: 0 auto;">
+    <h1 class="page-title" style="margin-bottom: 4px;">Literary timeline</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px;">
+      Browse books by publication era. Zoom in to explore a decade. Each dot is a book — size indicates popularity.
+    </p>
+
+    <!-- Controls row -->
+    <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 16px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <label style="font-size: 0.8rem; color: var(--text-faint);">Highlight genre</label>
+        <select id="genre-highlight"
+          style="padding:4px 10px; border:1.5px solid var(--border); border-radius:var(--radius-sm); background:var(--bg-card); font-size:0.8rem; color:var(--text); cursor:pointer;">
+          <option value="">All genres</option>
+        </select>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <label style="font-size: 0.8rem; color: var(--text-faint);">Color by</label>
+        <select id="color-mode"
+          style="padding:4px 10px; border:1.5px solid var(--border); border-radius:var(--radius-sm); background:var(--bg-card); font-size:0.8rem; color:var(--text); cursor:pointer;">
+          <option value="genre">Genre</option>
+          <option value="mood">Mood (dark/cozy)</option>
+          <option value="pacing">Pacing</option>
+        </select>
+      </div>
+      <button class="btn btn-outline" id="reset-zoom" style="font-size:0.8rem; padding:4px 12px;">Reset zoom</button>
+    </div>
+  </div>
+
+  <!-- Timeline SVG container -->
+  <div style="max-width: var(--max-width); margin: 0 auto; padding: 0 24px 32px;">
+    <div class="viz-container" style="overflow: hidden; position: relative;">
+      <svg id="timeline-svg" class="timeline-svg" style="width:100%;"></svg>
+      <div id="timeline-tooltip" class="timeline-tooltip" style="display:none;"></div>
+      <div id="timeline-loading" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:var(--bg-card);">
+        <div style="text-align:center; color:var(--text-muted); font-size:0.9rem;">Loading timeline…</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initTimeline } from './js/pages/timeline.js';
+    initTimeline();
+  </script>
+</body>
+</html>

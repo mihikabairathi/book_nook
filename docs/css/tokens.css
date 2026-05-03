@@ -1,0 +1,64 @@
+:root {
+  /* Warm & literary palette */
+  --bg-base:      #fdf6ee;
+  --bg-card:      #fff8f0;
+  --bg-muted:     #f5ece0;
+  --bg-hover:     #f0e4d4;
+  --accent:       #c0392b;
+  --accent-mid:   #922b21;
+  --accent-light: #f5d0cc;
+  --accent-subtle:#fdf0ee;
+  --text:         #2c1810;
+  --text-muted:   #7d5a50;
+  --text-faint:   #b89588;
+  --border:       #e8d5c4;
+  --border-mid:   #d4b8a8;
+  --white:        #ffffff;
+
+  /* Semantic genre colors (warm palette) */
+  --genre-fantasy:     #8b5cf6;
+  --genre-mystery:     #6366f1;
+  --genre-romance:     #ec4899;
+  --genre-scifi:       #06b6d4;
+  --genre-literary:    #0d9488;
+  --genre-thriller:    #dc2626;
+  --genre-historical:  #d97706;
+  --genre-nonfiction:  #16a34a;
+  --genre-other:       #78716c;
+
+  /* Typography */
+  --font-body:   'Georgia', 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
+  --font-ui:     'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono:   'Courier New', 'Lucida Console', monospace;
+
+  /* Spacing scale */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Layout */
+  --max-width:    1280px;
+  --nav-height:   60px;
+  --radius-sm:    4px;
+  --radius:       8px;
+  --radius-lg:    12px;
+  --radius-full:  9999px;
+
+  /* Shadows */
+  --shadow-sm:  0 1px 4px rgba(44, 24, 16, 0.06);
+  --shadow:     0 2px 12px rgba(44, 24, 16, 0.08);
+  --shadow-md:  0 4px 20px rgba(44, 24, 16, 0.12);
+  --shadow-lg:  0 8px 40px rgba(44, 24, 16, 0.15);
+
+  /* Transitions */
+  --transition-fast: 0.12s ease;
+  --transition:      0.2s ease;
+  --transition-slow: 0.35s ease;
+}
