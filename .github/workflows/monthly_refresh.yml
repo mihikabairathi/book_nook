@@ -37,6 +37,15 @@ jobs:
             pipeline/raw/ol_reading_log_latest.txt.gz
           key: ol-dumps-${{ steps.date.outputs.month }}
 
+      - name: Probe NYT API reachability
+        env:
+          NYT_BOOKS_API_KEY: ${{ secrets.NYT_BOOKS_API_KEY }}
+        run: |
+          echo "HTTP status from GitHub Actions runner:"
+          curl -s -o /dev/null -w "%{http_code}" \
+            "https://api.nytimes.com/svc/books/v3/lists/names.json?api-key=${NYT_BOOKS_API_KEY}"
+          echo ""
+
       - name: Run pipeline
         env:
           ANTHROPIC_API_KEY:    ${{ secrets.ANTHROPIC_API_KEY }}
