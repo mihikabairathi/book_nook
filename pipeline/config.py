@@ -32,5 +32,6 @@ LABEL_FALLBACK      = "claude-sonnet-4-6"
 
 # ── Open Library dump URL ──────────────────────────────────────────────────────
 OL_WORKS_DUMP_URL   = "https://openlibrary.org/data/ol_dump_works_latest.txt.gz"
+OL_AUTHORS_DUMP_URL = "https://openlibrary.org/data/ol_dump_authors_latest.txt.gz"
 OL_RATINGS_DUMP_URL = "https://openlibrary.org/data/ol_dump_ratings_latest.txt.gz"
 OL_READING_LOG_URL  = "https://openlibrary.org/data/ol_dump_reading-log_latest.txt.gz"

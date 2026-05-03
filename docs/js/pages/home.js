@@ -17,28 +17,27 @@ export async function initHome() {
   await loadBooks();
   await loadMeta();
 
+  showLoading(false);
+
   const { books, meta } = getState();
+
+  populateGenreTags(books);
+  initFilters();
+  initNLSearch(handleNLResult);
+  on('filters-changed', () => refresh(false));
+  document.getElementById('load-more')?.addEventListener('click', loadMore);
+
   if (!books.length) {
     showEmptyState('No books loaded — run the pipeline first.');
     return;
   }
 
-  showLoading(false);
-  populateGenreTags(books);
-  initFilters();
-  initNLSearch(handleNLResult);
-  on('filters-changed', () => refresh(false));
-
-  // Meta info in footer
   if (meta) {
     const footer = document.createElement('footer');
     footer.style.cssText = 'text-align:center;padding:24px;color:var(--text-faint);font-size:0.75rem;';
     footer.textContent = `${meta.book_count?.toLocaleString() || books.length.toLocaleString()} books · Last updated ${meta.pipeline_run?.slice(0,10) || 'recently'}`;
     document.body.appendChild(footer);
   }
-
-  // Load more button
-  document.getElementById('load-more')?.addEventListener('click', loadMore);
 
   await refresh(false);
 }
@@ -55,6 +54,7 @@ function handleNLResult(vec, text) {
 }
 
 async function refresh(useEmbeddings) {
+  if (!getState().books.length) return;
   _page = 0;
   const results = await runRecommendations(_queryVec, useEmbeddings && !!_queryVec);
   _currentResults = results.map(r => ({

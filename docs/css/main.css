@@ -192,11 +192,16 @@ body {
 input[type="range"] {
   -webkit-appearance: none;
   width: 100%;
+  height: 16px;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
   height: 4px;
   border-radius: 2px;
   background: var(--border);
-  outline: none;
-  cursor: pointer;
 }
 
 input[type="range"]::-webkit-slider-thumb {
@@ -207,18 +212,38 @@ input[type="range"]::-webkit-slider-thumb {
   background: var(--accent);
   border: 2px solid var(--bg-card);
   box-shadow: var(--shadow-sm);
+  margin-top: -6px;
   transition: transform var(--transition-fast);
+  cursor: pointer;
 }
 
 input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
 
+input[type="range"]::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg-card);
+  cursor: pointer;
+}
+
 .slider-labels {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
   font-size: 0.7rem;
   color: var(--text-faint);
   margin-top: var(--space-1);
 }
+
+.slider-labels span:nth-child(2) { text-align: center; }
+.slider-labels span:nth-child(3) { text-align: right; }
 
 /* Genre tag pills */
 .tag-group { display: flex; flex-wrap: wrap; gap: var(--space-2); }

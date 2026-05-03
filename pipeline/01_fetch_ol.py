@@ -14,12 +14,13 @@ from tqdm import tqdm
 
 from config import (
     RAW, DOCS, MIN_DESCRIPTION_LEN,
-    OL_WORKS_DUMP_URL, OL_RATINGS_DUMP_URL, OL_READING_LOG_URL,
+    OL_WORKS_DUMP_URL, OL_AUTHORS_DUMP_URL, OL_RATINGS_DUMP_URL, OL_READING_LOG_URL,
 )
 
 CANDIDATE_PATH = RAW / "ol_candidates.ndjson"
 RATINGS_PATH   = RAW / "ol_ratings.json"
 READING_PATH   = RAW / "ol_reading_counts.json"
+AUTHORS_PATH   = RAW / "ol_authors_latest.txt.gz"
 
 # ── Load existing book IDs for delta detection ─────────────────────────────────
 def load_existing_ids():
@@ -80,6 +81,27 @@ def build_ratings(ratings_gz: Path) -> dict:
             ratings[wkey]["sum"]   += rating
     return ratings
 
+# ── Build author key → name map from OL authors dump ─────────────────────────
+def build_author_names(authors_gz: Path) -> dict:
+    """Returns {'/authors/OL123A': 'Author Name'}"""
+    names: dict = {}
+    print("  Building author name index…")
+    with gzip.open(authors_gz, "rt", encoding="utf-8", errors="replace") as f:
+        for line in tqdm(f, desc="authors", unit=" lines", miniters=500_000):
+            parts = line.rstrip("\n").split("\t", 4)
+            if len(parts) < 5 or parts[0] != "/type/author":
+                continue
+            key = parts[1]
+            try:
+                data = json.loads(parts[4])
+                name = data.get("name") or data.get("personal_name") or data.get("fuller_name")
+                if name:
+                    names[key] = name.strip()
+            except json.JSONDecodeError:
+                continue
+    print(f"  {len(names):,} author names indexed")
+    return names
+
 # ── Extract description text from OL work JSON ────────────────────────────────
 def extract_description(data: dict) -> str:
     d = data.get("description", "")
@@ -93,7 +115,7 @@ def normalize(s: str) -> str:
     return _NORM_RE.sub("", s.lower()).strip()
 
 # ── Main stream ────────────────────────────────────────────────────────────────
-def stream_works(works_gz: Path, ratings: dict, read_counts: dict, existing_ids: set) -> list:
+def stream_works(works_gz: Path, ratings: dict, read_counts: dict, existing_ids: set, author_names: dict) -> list:
     candidates = []
     seen_norm: set = set()
 
@@ -137,6 +159,7 @@ def stream_works(works_gz: Path, ratings: dict, read_counts: dict, existing_ids:
 
             # Authors
             author_keys = [a["author"]["key"] for a in data.get("authors", []) if isinstance(a, dict) and "author" in a]
+            author_name = author_names.get(author_keys[0]) if author_keys else None
 
             # Subjects → genre tags
             subjects = data.get("subjects", [])
@@ -176,7 +199,7 @@ def stream_works(works_gz: Path, ratings: dict, read_counts: dict, existing_ids:
                 "ol_avg_rating":    ol_avg_rating,
                 "ol_reads_count":   ol_reads_count,
                 # Populated later by 03_enrich.py / 04_clean.py
-                "author":           None,
+                "author":           author_name,
                 "author_id":        None,
                 "genres":           [],
                 "tags":             [],
@@ -193,6 +216,7 @@ def main():
 
     # Download dumps if not cached
     works_gz   = RAW / "ol_works_latest.txt.gz"
+    authors_gz = RAW / "ol_authors_latest.txt.gz"
     ratings_gz = RAW / "ol_ratings_latest.txt.gz"
     reading_gz = RAW / "ol_reading_log_latest.txt.gz"
 
@@ -200,6 +224,11 @@ def main():
         download_gz_stream(OL_WORKS_DUMP_URL, works_gz)
     else:
         print(f"  Using cached {works_gz.name}")
+
+    if not authors_gz.exists():
+        download_gz_stream(OL_AUTHORS_DUMP_URL, authors_gz)
+    else:
+        print(f"  Using cached {authors_gz.name}")
 
     if not ratings_gz.exists():
         download_gz_stream(OL_RATINGS_DUMP_URL, ratings_gz)
@@ -212,11 +241,12 @@ def main():
         print(f"  Using cached {reading_gz.name}")
 
     # Build aggregated signals
-    ratings    = build_ratings(ratings_gz)
-    read_counts = build_reading_counts(reading_gz)
+    author_names = build_author_names(authors_gz)
+    ratings      = build_ratings(ratings_gz)
+    read_counts  = build_reading_counts(reading_gz)
 
     # Stream works
-    candidates = stream_works(works_gz, ratings, read_counts, existing_ids)
+    candidates = stream_works(works_gz, ratings, read_counts, existing_ids, author_names)
 
     # Write ndjson
     with open(CANDIDATE_PATH, "w") as f:

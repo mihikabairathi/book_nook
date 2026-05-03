@@ -32,6 +32,13 @@ def main():
     sorted_authors = sorted(author_books.items(), key=lambda x: len(x[1]), reverse=True)[:MAX_AUTHORS]
     print(f"  {len(sorted_authors)} authors selected")
 
+    if not sorted_authors:
+        print("  No authors with embed_idx found — writing empty graph")
+        with open(OUTPUT, "w") as f:
+            json.dump({"nodes": [], "links": []}, f)
+        print(f"  Wrote → {OUTPUT}")
+        return
+
     # Compute author embeddings (mean of books)
     author_vecs = {}
     author_meta = {}
