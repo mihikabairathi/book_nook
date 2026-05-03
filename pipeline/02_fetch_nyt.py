@@ -17,7 +17,7 @@ OUTPUT = RAW / "nyt_bestsellers.json"
 NYT_LISTS_ENDPOINT = "https://api.nytimes.com/svc/books/v3/lists/names.json"
 
 def nyt_get(url: str, params: dict = None) -> dict:
-    p = {"api-key": NYT_BOOKS_API_KEY}
+    p = {"api-key": NYT_BOOKS_API_KEY.strip()}
     if params:
         p.update(params)
     full_url = url + "?" + urllib.parse.urlencode(p)
@@ -49,6 +49,9 @@ def main():
         with open(OUTPUT, "w") as f:
             json.dump({}, f)
         return
+
+    key = NYT_BOOKS_API_KEY.strip()
+    print(f"  Using key: {key[:6]}… (len={len(key)})")
 
     results: dict = {}
 
