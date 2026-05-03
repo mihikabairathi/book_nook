@@ -19,7 +19,7 @@ from pathlib import Path
 from config import RAW, LABELED
 
 SEARCH_URL = "https://openlibrary.org/search.json"
-OUTPUT = RAW / "ol_candidates.ndjson"
+OUTPUT     = RAW / "ol_candidates.ndjson"
 
 # Broad queries to get diverse popular books
 QUERIES = [
@@ -44,7 +44,9 @@ def search_ol(query: str, limit: int = 40) -> list:
     params = {
         "q": query,
         "limit": limit,
-        "fields": "key,title,author_name,first_publish_year,subject,isbn,cover_i,number_of_pages_median,ratings_average,ratings_count,readinglog_count,first_sentence",
+        "fields": "key,title,author_name,first_publish_year,subject,isbn,cover_i,"
+                  "number_of_pages_median,ratings_average,ratings_count,readinglog_count,"
+                  "first_sentence,subtitle",
     }
     url = SEARCH_URL + "?" + urllib.parse.urlencode(params)
     req = urllib.request.Request(url, headers={"User-Agent": "BookNook/1.0 (seed script)"})
@@ -60,15 +62,27 @@ def ol_doc_to_candidate(doc: dict) -> dict | None:
     if not title:
         return None
 
-    # Extract description from first_sentence
+    # Build description: first_sentence → subtitle → subjects → placeholder
     desc = ""
     fs = doc.get("first_sentence")
     if isinstance(fs, dict):
         desc = fs.get("value", "")
     elif isinstance(fs, str):
         desc = fs
+
     if len(desc) < 30:
-        return None
+        sub = doc.get("subtitle", "")
+        if isinstance(sub, str) and len(sub) >= 10:
+            desc = sub
+
+    if len(desc) < 30:
+        subjects = doc.get("subject", [])
+        if subjects:
+            desc = f"A work covering: {', '.join(subjects[:6])}."
+
+    if len(desc) < 30:
+        authors = doc.get("author_name", [])
+        desc = f"A book by {authors[0]}." if authors else f"A book titled {title}."
 
     authors = doc.get("author_name", [])
     author  = authors[0] if authors else ""

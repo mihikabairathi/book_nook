@@ -3,17 +3,18 @@ Gap-fill missing descriptions + metadata using Google Books API.
 Respects 90 req/day limit via checkpoint file.
 Outputs: labeled/books_enriched.json (updates raw/books_clean.json in-place)
 """
+import datetime
 import json
+import re
 import time
 import urllib.request
 import urllib.parse
-from pathlib import Path
 from tqdm import tqdm
 
-from config import RAW, LABELED, GOOGLE_BOOKS_API_KEY
+from config import RAW, LABELED, GOOGLE_BOOKS_API_KEY, SUBJECT_MAP
 
-INPUT    = RAW    / "books_clean.json"
-OUTPUT   = LABELED / "books_enriched.json"
+INPUT      = RAW    / "books_clean.json"
+OUTPUT     = LABELED / "books_enriched.json"
 CHECKPOINT = RAW / "enrichment_checkpoint.json"
 
 LABELED.mkdir(parents=True, exist_ok=True)
@@ -24,9 +25,7 @@ DAILY_LIMIT = 90  # stay under 100 free req/day
 def google_books_fetch(query: str) -> dict | None:
     if not GOOGLE_BOOKS_API_KEY:
         return None
-    params = {"q": query, "maxResults": 1}
-    if GOOGLE_BOOKS_API_KEY:
-        params["key"] = GOOGLE_BOOKS_API_KEY
+    params = {"q": query, "maxResults": 1, "key": GOOGLE_BOOKS_API_KEY}
     url = GOOGLE_BOOKS_URL + "?" + urllib.parse.urlencode(params)
     req = urllib.request.Request(url, headers={"User-Agent": "BookNook/1.0"})
     try:
@@ -45,9 +44,7 @@ def main():
     with open(INPUT) as f:
         books = json.load(f)
 
-    # Load checkpoint (tracks how many requests used today)
     checkpoint = json.loads(CHECKPOINT.read_text()) if CHECKPOINT.exists() else {"count": 0, "date": ""}
-    import datetime
     today = datetime.date.today().isoformat()
     if checkpoint.get("date") != today:
         checkpoint = {"count": 0, "date": today}
@@ -87,10 +84,7 @@ def main():
         if not book.get("cover_url") and info.get("imageLinks", {}).get("thumbnail"):
             book["cover_url"] = info["imageLinks"]["thumbnail"].replace("http://", "https://")
 
-        # Categories
         if not book.get("genres") and info.get("categories"):
-            from config import SUBJECT_MAP
-            import re
             for cat in info["categories"]:
                 cl = cat.lower()
                 for kw, genre in SUBJECT_MAP.items():

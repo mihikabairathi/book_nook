@@ -15,12 +15,8 @@ TOP_PER_BUCKET = 100  # max books per time bucket
 def get_bucket(year: int) -> tuple:
     """Returns (bucket_label, year_start, year_end)."""
     if year < 1900:
-        decade = (year // 100) * 100
-        return (f"{decade}s", decade, decade + 99)
-    if year < 1950:
-        decade = (year // 10) * 10
-        return (f"{decade}s", decade, decade + 9)
-    # 1950+ → individual decades
+        century = (year // 100) * 100
+        return (f"{century}s", century, century + 99)
     decade = (year // 10) * 10
     return (f"{decade}s", decade, decade + 9)
 

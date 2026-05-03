@@ -6,7 +6,6 @@ Outputs: labeled/books_labeled.json
 """
 import json
 import time
-from pathlib import Path
 from tqdm import tqdm
 
 import anthropic
@@ -15,6 +14,8 @@ from config import LABELED, ANTHROPIC_API_KEY, LABEL_MODEL, LABEL_FALLBACK
 
 INPUT  = LABELED / "books_enriched.json"
 OUTPUT = LABELED / "books_labeled.json"
+
+BATCH_SIZE = 500  # fewer API round-trips; Batches API supports up to 10k
 
 SYSTEM_PROMPT = """You are a literary analyst. Given a book's title, author, genre tags, and description, return ONLY a JSON object with these fields (all required):
 - mood_dark: 0-10 (0=cozy/light, 10=dark/heavy)
@@ -64,25 +65,22 @@ def label_batch(client: anthropic.Anthropic, books_to_label: list) -> dict:
     batch_id = batch.id
     print(f"  Batch ID: {batch_id}")
 
-    # Poll until complete
     while True:
         batch = client.messages.batches.retrieve(batch_id)
-        status = batch.processing_status
         counts = batch.request_counts
-        print(f"  Status: {status}  (processed: {counts.processing} / {counts.succeeded} / {counts.errored})")
-        if status == "ended":
+        print(f"  Status: {batch.processing_status}  "
+              f"(processing={counts.processing} succeeded={counts.succeeded} errored={counts.errored})")
+        if batch.processing_status == "ended":
             break
         time.sleep(30)
 
-    # Collect results
     results = {}
     for result in client.messages.batches.results(batch_id):
         cid = result.custom_id
         if result.result.type == "succeeded":
             content = result.result.message.content[0].text.strip()
             try:
-                labels = json.loads(content)
-                results[cid] = labels
+                results[cid] = json.loads(content)
             except json.JSONDecodeError:
                 print(f"  WARN: JSON parse failed for {cid}")
         else:
@@ -117,12 +115,13 @@ DEFAULT_LABELS = {
 def main():
     print("=== 06_label: Claude Haiku LLM labeling ===")
 
+    with open(INPUT) as f:
+        books = json.load(f)
+
     if not ANTHROPIC_API_KEY:
         print("  ANTHROPIC_API_KEY not set — applying default labels")
-        with open(INPUT) as f:
-            books = json.load(f)
         for book in books:
-            if not any(book.get(k) is not None for k in ["mood_dark", "pacing"]):
+            if book.get("mood_dark") is None:
                 book.update(DEFAULT_LABELS)
         with open(OUTPUT, "w") as f:
             json.dump(books, f)
@@ -130,33 +129,27 @@ def main():
 
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
-    with open(INPUT) as f:
-        books = json.load(f)
-
-    # Load existing labeled books for delta detection
+    # Load existing labeled books for delta detection.
+    # This is populated from cache on CI, enabling incremental labeling across runs.
     existing_labels: dict = {}
     if OUTPUT.exists():
         with open(OUTPUT) as f:
-            labeled = json.load(f)
-        for b in labeled:
-            if b.get("mood_dark") is not None:
-                existing_labels[b["id"]] = b
+            for b in json.load(f):
+                if b.get("mood_dark") is not None:
+                    existing_labels[b["id"]] = b
 
-    needs_label = [b for b in books if b["id"] not in existing_labels]
-    already_labeled = [b for b in books if b["id"] in existing_labels]
+    needs_label    = [b for b in books if b["id"] not in existing_labels]
+    already_labeled = [existing_labels[b["id"]] for b in books if b["id"] in existing_labels]
     print(f"  Books needing labels: {len(needs_label):,}  (already labeled: {len(already_labeled):,})")
 
     labeled_books = list(already_labeled)
-
-    # Process in batches of 100 (Anthropic batch max is ~100k but we keep smaller for robustness)
-    BATCH_SIZE = 100
-    failed_ids = set()
+    failed_ids: set = set()
 
     for i in tqdm(range(0, len(needs_label), BATCH_SIZE), desc="batches"):
-        batch = needs_label[i : i + BATCH_SIZE]
-        results = label_batch(client, batch)
+        chunk = needs_label[i : i + BATCH_SIZE]
+        results = label_batch(client, chunk)
 
-        for book in batch:
+        for book in chunk:
             labels = results.get(book["id"])
             if labels:
                 book.update(labels)
@@ -164,19 +157,20 @@ def main():
                 failed_ids.add(book["id"])
             labeled_books.append(book)
 
+        # Write after every batch so a cancelled run saves partial progress
+        with open(OUTPUT, "w") as f:
+            json.dump(labeled_books, f)
+
     # Fallback for failures
     if failed_ids:
         print(f"  Retrying {len(failed_ids)} failures with Sonnet…")
         for book in needs_label:
             if book["id"] in failed_ids:
                 labels = label_single_fallback(client, book)
-                if labels:
-                    book.update(labels)
-                else:
-                    book.update(DEFAULT_LABELS)
+                book.update(labels if labels else DEFAULT_LABELS)
                 time.sleep(0.5)
 
-    # Ensure all books have labels (apply defaults to any still missing)
+    # Ensure every book has labels
     for book in labeled_books:
         if book.get("mood_dark") is None:
             book.update(DEFAULT_LABELS)

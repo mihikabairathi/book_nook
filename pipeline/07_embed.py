@@ -38,6 +38,14 @@ def main():
         books = json.load(f)
     print(f"  {len(books):,} books to embed")
 
+    if not books:
+        print("  No books to embed — writing empty outputs")
+        np.save(str(F32), np.zeros((0, EMBED_DIMS), dtype=np.float32))
+        INT8.write_bytes(b"")
+        with open(INDEX, "w") as f:
+            json.dump([], f)
+        return
+
     model = SentenceTransformer(EMBED_MODEL)
     print(f"  Model: {EMBED_MODEL} ({EMBED_DIMS} dims)")
 

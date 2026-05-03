@@ -5,10 +5,13 @@ on:
     - cron: '0 2 1 * *'   # 2am UTC on the 1st of each month
   workflow_dispatch:        # Allow manual trigger for testing
 
+permissions:
+  contents: write           # needed for git push at end of job
+
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 180   # Pipeline can take 2+ hours on full runs
+    timeout-minutes: 360   # 6h — cold labeling of 10k books takes ~4-5h
 
     steps:
       - uses: actions/checkout@v4
@@ -27,20 +30,20 @@ jobs:
         run: echo "month=$(date +'%Y-%m')" >> $GITHUB_OUTPUT
 
       - name: Restore OL candidates cache
-        id: cache-restore
+        id: cache-ol
         uses: actions/cache/restore@v4
         with:
           path: pipeline/raw/ol_candidates.ndjson
           key: ol-candidates-${{ steps.date.outputs.month }}
 
-      - name: Probe NYT API reachability
-        env:
-          NYT_BOOKS_API_KEY: ${{ secrets.NYT_BOOKS_API_KEY }}
-        run: |
-          echo "HTTP status from GitHub Actions runner:"
-          curl -s -o /dev/null -w "%{http_code}" \
-            "https://api.nytimes.com/svc/books/v3/lists/names.json?api-key=${NYT_BOOKS_API_KEY}"
-          echo ""
+      - name: Restore labeled books cache
+        id: cache-labeled
+        uses: actions/cache/restore@v4
+        with:
+          path: pipeline/labeled/books_labeled.json
+          key: books-labeled-${{ steps.date.outputs.month }}
+          restore-keys: |
+            books-labeled-
 
       - name: Run pipeline
         env:
@@ -68,6 +71,13 @@ jobs:
         with:
           path: pipeline/raw/ol_candidates.ndjson
           key: ol-candidates-${{ steps.date.outputs.month }}
+
+      - name: Save labeled books cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: pipeline/labeled/books_labeled.json
+          key: books-labeled-${{ steps.date.outputs.month }}
 
       - name: Commit updated data files
         run: |
