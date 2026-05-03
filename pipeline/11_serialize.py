@@ -43,8 +43,8 @@ def main():
         # Remove pipeline-internal fields; keep only frontend fields
         keep = {
             "id","title","author","author_id","year","isbn","cover_url","description",
-            "genres","tags","ol_avg_rating","ol_ratings_count","hardcover_avg_rating",
-            "hardcover_ratings_count","nyt_weeks_on_list","unified_popularity","page_count",
+            "genres","tags","ol_avg_rating","ol_ratings_count",
+            "nyt_weeks_on_list","unified_popularity","page_count",
             "mood_dark","mood_emotional","pacing","tone_humor","tone_dark","tone_literary",
             "character_focus","plot_focus","world_building","prose_style","primary_theme",
             "themes","setting_era","setting_location","emotional_intensity","depth",

@@ -56,7 +56,7 @@ def main():
                 genre_counts[g] = genre_counts.get(g, 0) + 1
         top_genres = sorted(genre_counts, key=genre_counts.get, reverse=True)[:3]
 
-        avg_r = sum(b.get("hardcover_avg_rating") or b.get("ol_avg_rating") or 0 for b in ab)
+        avg_r = sum(b.get("ol_avg_rating") or 0 for b in ab)
         avg_r /= len(ab)
 
         author_meta[aid] = {

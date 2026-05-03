@@ -55,7 +55,6 @@ jobs:
           cd pipeline
           python 01_fetch_ol.py
           python 02_fetch_nyt.py
-          python 03_fetch_hardcover.py
           python 04_clean.py
           python 05_enrich.py
           python 06_label.py

@@ -1,6 +1,15 @@
 import os
 from pathlib import Path
 
+# ── Load .env for local development (ignored in CI where secrets are env vars) ─
+_env_file = Path(__file__).parent / ".env"
+if _env_file.exists():
+    for _line in _env_file.read_text().splitlines():
+        _line = _line.strip()
+        if _line and not _line.startswith("#") and "=" in _line:
+            _k, _v = _line.split("=", 1)
+            os.environ.setdefault(_k.strip(), _v.strip())
+
 # ── API keys (values come from environment; NEVER hardcode here) ──────────────
 ANTHROPIC_API_KEY    = os.environ.get("ANTHROPIC_API_KEY", "")
 NYT_BOOKS_API_KEY    = os.environ.get("NYT_BOOKS_API_KEY", "")
@@ -21,7 +30,7 @@ for d in [RAW, LABELED, EMBED, UMAP_DIR, GRAPH]:
 # ── Pipeline settings ──────────────────────────────────────────────────────────
 TARGET_BOOKS        = 10_000   # max books to keep after ranking
 MIN_DESCRIPTION_LEN = 50       # chars
-MIN_RATINGS         = 100      # min ratings count (goodbooks-10k exempt)
+MIN_RATINGS         = 100      # min ratings count
 EMBED_MODEL         = "all-MiniLM-L6-v2"
 EMBED_DIMS          = 384
 UMAP_NEIGHBORS      = 15
