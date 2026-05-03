@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Pipeline intermediate outputs — not committed; persisted via GitHub Actions cache
+pipeline/raw/
+pipeline/labeled/
+pipeline/embeddings/
+pipeline/graph/
+pipeline/umap/
+pipeline/seed/
